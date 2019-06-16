@@ -4,11 +4,11 @@ CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = "true"
 PORT = "8000"
 
 # ---- BUILD & CREATE WASMS ----
-[tasks.build]
+[tasks.build_debug]
 description = "Build"
 workspace = false
 command = "cargo"
-args = ["build"]
+args = ["build", "--target", "wasm32-unknown-unknown"]
 
 [tasks.build_release]
 description = "Build, with the --release flag"
@@ -16,11 +16,11 @@ workspace = false
 command = "cargo"
 args = ["build", "--release"]
 
-[tasks.create_wasm]
-description = "Build with wasm-pack"
-install_crate = "wasm-pack"
-command = "wasm-pack"
-args = ["build", "--target", "no-modules", "--out-name", "package", "--dev"]
+[tasks.create_wasm_debug]
+description = "Build with wasm debug"
+command = "wasm-bindgen"
+dependencies = ["build_debug"]
+args = ["target/wasm32-unknown-unknown/debug/appname.wasm", "--no-modules", "--out-dir", "./pkg", "--out-name", "package"]
 
 [tasks.create_wasm_release]
 description = "Build with wasm-pack"
@@ -36,8 +36,21 @@ dependencies = ["build", "create_wasm"]
 [tasks.watch]
 description = "Build, create wasms, and watch/recompile files for changes"
 workspace = false
-dependencies = ["build", "create_wasm"]
+dependencies = ["create_wasm_debug"]
 watch = { ignore_pattern="pkg/*" }
+
+
+[tasks.watch_and_serve]
+description = "Build, create wasms, and watch/recompile files for changes"
+workspace = false
+#dependencies = ["create_wasm_release", "serve"]
+script = [
+'''
+    echo running script
+    (trap 'kill 0' SIGINT; cargo make watch & cargo make serve)
+'''
+]
+
 
 [tasks.all_release]
 description = "Build, and create wasms, with the --release flag"
@@ -51,35 +64,3 @@ workspace = false
 command = "microserver"
 args = ["--port", "${PORT}"]
 
-# ---- TEST ----
-
-[tasks.test]
-description = "Run tests. Ex: 'cargo make test firefox'. Test envs: [chrome, firefox, safari]"
-clear = true
-workspace = false
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["test", "--${@}"]
-
-[tasks.test_release]
-extend = "test"
-description = "Run tests in release mode. Ex: 'cargo make test firefox'. Test envs: [chrome, firefox, safari]"
-args = ["test", "--${@}", "--release"]
-
-[tasks.test_h]
-description = "Run headless tests. Ex: 'cargo make test_h firefox'. Test envs: [chrome, firefox, safari]"
-extend = "test"
-args = ["test", "--headless", "--${@}"]
-
-[tasks.test_h_release]
-extend = "test_h"
-description = "Run headless tests in release mode. Ex: 'cargo make test_h firefox'. Test envs: [chrome, firefox, safari]"
-args = ["test", "--headless", "--${@}", "--release"]
-
-[tasks.test_one]
-description = "Run Seed's tests. Ex: 'cargo make test firefox'. Test envs: [chrome, firefox, safari]"
-clear = true
-workspace = false
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["test", "--firefox", "--headless", "--", "--lib", "${@}"]

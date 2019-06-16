@@ -17,3 +17,16 @@ web-sys = "^0.3.19"
 # For serialization, eg sending requests to a server. Otherwise, not required.
 serde = { version = "^1.0.85", features = ['derive'] }
 futures = "^0.1.26"
+
+
+# `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
+# compared to the default allocator's ~10K. It is slower than the default
+# allocator, however.
+wee_alloc = { version = "0.4"}
+
+
+[profile.release]
+lto = true
+opt-level = 's'
+
+panic = "abort"
