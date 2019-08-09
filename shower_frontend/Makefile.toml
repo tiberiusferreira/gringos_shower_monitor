@@ -14,19 +14,19 @@ args = ["build", "--target", "wasm32-unknown-unknown"]
 description = "Build, with the --release flag"
 workspace = false
 command = "cargo"
-args = ["build", "--release"]
+args = ["build", "--release", "--target", "wasm32-unknown-unknown"]
 
 [tasks.create_wasm_debug]
 description = "Build with wasm debug"
 command = "wasm-bindgen"
 dependencies = ["build_debug"]
-args = ["target/wasm32-unknown-unknown/debug/appname.wasm", "--no-modules", "--out-dir", "./pkg", "--out-name", "package"]
+args = ["target/wasm32-unknown-unknown/debug/shower_frontend.wasm", "--no-typescript", "--target", "web", "--out-dir", "./pkg", "--out-name", "package"]
 
 [tasks.create_wasm_release]
-description = "Build with wasm-pack"
-install_crate = "wasm-pack"
-command = "wasm-pack"
-args = ["build", "--target", "no-modules", "--out-name", "package"]
+description = "Build with wasm release"
+command = "wasm-bindgen"
+dependencies = ["build_release"]
+args = ["target/wasm32-unknown-unknown/release/shower_frontend.wasm", "--no-typescript", "--target", "web", "--out-dir", "./pkg", "--out-name", "package"]
 
 [tasks.all]
 description = "Build, and create wasms"
@@ -41,15 +41,15 @@ watch = { ignore_pattern="pkg/*" }
 
 
 [tasks.watch_and_serve]
-description = "Build, create wasms, and watch/recompile files for changes"
-workspace = false
-#dependencies = ["create_wasm_release", "serve"]
-script = [
-'''
-    echo running script
-    (trap 'kill 0' SIGINT; cargo make watch & cargo make serve)
-'''
-]
+ description = "Build, create wasms, and watch/recompile files for changes"
+ workspace = false
+ #dependencies = ["create_wasm_release", "serve"]
+ script = [
+ '''
+     echo running script
+     (trap 'kill 0' SIGINT; cargo make watch & cargo make serve)
+ '''
+ ]
 
 
 [tasks.all_release]
