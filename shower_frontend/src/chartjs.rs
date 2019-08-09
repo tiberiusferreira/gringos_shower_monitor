@@ -73,11 +73,36 @@ struct Axes{
 struct Scales{
     xAxes: Vec<Axes>
 }
+
+#[derive(Serialize, Debug)]
+struct PluginsConf {
+    zoom: ZoomConf,
+    pan: ZoomConf
+}
+
+#[derive(Serialize, Debug)]
+struct ZoomConf{
+    enabled: bool,
+    drag: bool,
+    mode: String,
+//    rangeMin: Range,
+//    rangeMax: Range,
+    speed: Option<f64>,
+}
+#[derive(Serialize, Debug, Default)]
+struct Range{
+    x: Option<f64>,
+    y: Option<f64>
+}
+
+
 #[derive(Serialize, Debug)]
 struct Options{
     hover: HoverConfig,
     tooltips: HoverConfig,
-    scales: Scales
+    scales: Scales,
+    zoom: ZoomConf,
+    pan: ZoomConf,
 }
 #[derive(Serialize, Debug)]
 #[serde(rename = "data")]
@@ -102,10 +127,10 @@ struct ChartDataConfig {
 
 impl Chart{
     pub fn load_js_lib(context: web_sys::CanvasRenderingContext2d, points: Vec<PointMod>){
-        let my_str = include_str!("chartsjs/Chart.bundle.min.js");
-        let js_fun: js_sys::Function = js_sys::Function::new_no_args(my_str);
-        let window = window().unwrap();
-        js_fun.call0(&window).unwrap();
+//        let my_str = include_str!("chartsjs/Chart.bundle.min.js");
+//        let js_fun: js_sys::Function = js_sys::Function::new_no_args(my_str);
+//        let window = window().unwrap();
+//        js_fun.call0(&window).unwrap();
         let data_ = Data{
             datasets: vec![DataSets{
                 label: "Tempo de Banho [min]".to_string(),
@@ -137,7 +162,25 @@ impl Chart{
                             unit: "day".to_string()
                         }
                     }]
-                }
+                },
+//                plugins: PluginsConf {
+                    zoom: ZoomConf {
+                        enabled: true,
+                        drag: false,
+                        mode: "x".to_string(),
+                        speed: Some(0.01),//"0.1".to_string(),
+                    },
+                    pan: ZoomConf {
+                        enabled: true,
+                        drag: false,
+                        mode: "xy".to_string(),
+//                        rangeMin: Default::default(),
+//                        rangeMax: Default::default(),
+                        speed: Some(20.0),//"0.1".to_string()
+//                        rangeMin: Default::default(),
+//                        rangeMax: Default::default()
+                    }
+//                }
             }
         };
 
